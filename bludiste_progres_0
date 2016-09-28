@@ -1,0 +1,30 @@
+task oscilace(int prave_ohraniceni, int leve_ohraniceni) //leve je v zaporu
+{
+   while (1)
+   {
+      moveMotorTarget(motorC, prave_ohraniceni, RYCHLOST_OSCILACE_US); //o 10Â° doprava
+      repeatUntil(getMotorEncoder(motorC) == getMotorTarget(motorC))
+      {
+         sleep(1);
+      }
+
+      moveMotorTarget(motorC, leve_ohraniceni, RYCHLOST_OSCILACE_US); //o 10Â° doprava
+      repeatUntil(getMotorEncoder(motorC) == getMotorTarget(motorC))
+      {
+         sleep(1);
+      }
+   }
+}
+
+task jed_u_steny(float vzdalenost)
+{
+
+   while (1)
+   {
+      float stena = sinDegrees(getMotorEncoder(motorC)) * getUSDistance(distanceCM);
+      float odchylka = vzdalenost - stena;
+
+      setMotorSpeed(motorA, zaklad + uhelmadla * K2);
+      setMotorSpeed(motorB, zaklad - uhelmadla * K2);
+   }
+}
