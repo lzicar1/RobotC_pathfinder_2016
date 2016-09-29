@@ -12,6 +12,7 @@
 #define ROZLISENI_BARVY 15
 
 #define ZAKLAD 30
+#define RYCHLOST_OSCILACE_US 30
 
 #define KP 2
 #define KI 0
@@ -19,11 +20,14 @@
 
 #define K1 0.5 //korekce uhlu madla
 #define K2 1 //korekce rychlosti kol podle uhlu madla
+#define K3 0 //korekce rychlosti robota podle uhlove rychlosti
 
 //madlo = motorC
-//levymotor = motorA
-//pravymotor = motorB
+//pravymotor = motorA
+//levyymotor = motorB
 //senzor odrazeneho svetla = S3
+//gyro senzor = S2
+//ultrasonic = S4
 
 
 float delka_jednoho_stupne = (PI * D_KOL)/360;
@@ -44,62 +48,67 @@ void preambule()
 }
 
 
-// data ze senzoru zprumerovana odhadem plovouciho prumeru s exponencialnim zapominanim... for fun
-   float hsenzoru_avg = 0;
+//odhad plovouciho prumeru s exponencialnim zapominanim... for fun
+   float vystup_avg = 0;
 
-float hsenzoru_avg(int K_AVG)
+float avg_exp(int K_AVG, float vstup)
 {
-   int hsenzoru = getColorReflected(S3);
-   hsenzoru_avg = hsenzoru_avg + 1/K_AVG * (hsenzoru - hsenzoru_avg);
-
-return hsenzoru_avg;
+   vystup_avg = vystup_avg + 1/K_AVG * (vstup - vystup_avg);
+return vystup_avg;
 }
 
 
 task sledovanicary()
 {
 
-   setMotorTarget(motorC, -60, 50); //otoc madlo o -60° rychlosti 50%
-
+   setMotorSpeed(motorC, 50); //otoc madlo o -60Â° rychlosti 50%
    repeatUntil(getColorReflected(S3) < hrana + ROZLISENI_BARVY) //pockej dokud nenarazis na pravou hranu
    {
       sleep(1);
    }
+   
+//rekurzivniokenko
+   float integral = 0;
+   float posledniodchylka = 0;
 
    while (1)
    {
       //PID
-      float odchylka = hrana - hsenzoru_avg(3);
+   float hsenzoru = getColorReflected(S3);
+      float odchylka = hrana - avg_exp(3, hsenzoru);
       float derivativ = odchylka - posledniodchylka;
-      float integral = integral + hsenzoru
+      			integral = integral + hsenzoru;
       float rychlost_pid = odchylka * KP + integral * KI + derivativ * KD;
 
-      //madlo by mělo sledovat caru
-      setMotorSpeed(motorC, rychlost_pid);
+      //korekce uhlove rychlosti robota
+      float uhlova_rychlost_robota = getGyroRate(S2);
+      float zaklad = ZAKLAD + uhlova_rychlost_robota * K3;
+
+      //madlo by mÄ:lo sledovat caru
+      setMotorSpeed(motorC, rychlost_pid * K1);
       float uhelmadla = getMotorEncoder(motorC);
 
-      setMotorSpeed(motorA, ZAKLAD + uhelmadla * K2);
-      setMotorSpeed(motorB, ZAKLAD - uhelmadla * K2);
+      setMotorSpeed(motorA, zaklad + uhelmadla * K2);
+      setMotorSpeed(motorB, zaklad - uhelmadla * K2);
 
       sleep(5);
 
 
-
-
-      float posledniodchylka = odchylka;
+      posledniodchylka = odchylka;
    }
 }
-
 
 
 task main()
 {
 	preambule(); sleep(20);
-   hledejcaru();
 
-   startTask(sledujcaru);
+   startTask(sledovanicary);
 
-   pohyb();
+   while(1)
+   {
+      sleep(1);
+   }
 
    stopAllTasks();
 
