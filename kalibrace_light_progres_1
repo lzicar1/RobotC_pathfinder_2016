@@ -1,0 +1,43 @@
+#define K_PREVODU 40/24
+
+//okenko pro globalni promenne
+int min = 100; int max = 0;
+
+void kalibrace_light()
+{
+	displayTextLine(2, "KALIBRACE LS");
+	displayTextLine(4, "Pro spusteni zmacknete enter");
+	waitForButtonPress();
+	eraseDisplay();
+
+	setMotorTarget(motorC, 360 * K_PREVODU, 5);
+
+	int rozsah = 10000;
+	float hodnoty[rozsah];
+
+	if(getMotorMoving(motorA) == 1)
+	{
+			for(int i; i<rozsah; i++)
+			{
+				hodnoty[i] = getColorAmbient(S3);
+		
+				if(hodnoty[i] < min)
+				{
+					min = hodnoty[i];
+				}
+
+				if(hodnoty[i] > max)
+				{
+					max = hodnoty[i];
+				}
+
+				sleep(3);
+			}
+	}
+
+	displayCenteredTextLine(2, "KALIBRACE LS");
+	displayTextLine(4, "Cerna: %d", min);
+	displayTextLine(5, "Bila: %d", max);
+	waitForButtonPress();
+	eraseDisplay();
+}
