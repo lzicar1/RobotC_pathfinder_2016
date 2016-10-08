@@ -1,4 +1,4 @@
-task oscilace(int prave_ohraniceni, int leve_ohraniceni) //leve je v zaporu
+void oscilace(int prave_ohraniceni, int leve_ohraniceni) //leve je v zaporu
 {
    while (1)
    {
@@ -16,7 +16,8 @@ task oscilace(int prave_ohraniceni, int leve_ohraniceni) //leve je v zaporu
    }
 }
 
-task jed_u_steny(float vzdalenost)
+float vzdalenost = 10;
+task jed_u_steny()
 {
 
    while (1)
@@ -24,7 +25,7 @@ task jed_u_steny(float vzdalenost)
       float stena = sinDegrees(getMotorEncoder(motorC)) * getUSDistance(distanceCM);
       float odchylka = vzdalenost - stena;
 
-      setMotorSpeed(motorA, zaklad + uhelmadla * K2);
-      setMotorSpeed(motorB, zaklad - uhelmadla * K2);
+      setMotorSpeed(motorA, zaklad + odchylka);
+      setMotorSpeed(motorB, zaklad - odchylka);
    }
 }
