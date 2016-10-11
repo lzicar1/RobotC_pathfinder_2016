@@ -19,11 +19,7 @@ void kalibrace_light()
 	waitForButtonPress();
 	eraseDisplay();
 
-	setMotorTarget(motorC, 60 * K_PREVODU, 10);
-  if(getMotorEncoder(motorC) >= 59)
-  	{
-  		setMotorTarget(motorC, 0, 10);
-  	}
+	moveMotorTarget(motorC, 90 * K_PREVODU, 10);
 
 	float hodnoty[POCETMERENILS];
 
@@ -32,34 +28,34 @@ void kalibrace_light()
 		for(int i; i<POCETMERENILS; i++)
 		{
 			hodnoty[i] = getColorAmbient(S3);
-			
+
 			if(hodnoty[i] < min)
 			{
 			min = hodnoty[i];
 			}
-		
+
 			if(hodnoty[i] > max)
 			{
 			max = hodnoty[i];
 			}
-	
-			sleep(10);
-		}
-	}
 
-	displayCenteredTextLine(2, "KALIBRACE LS");
 	displayTextLine(4, "Cerna: %d", min);
 	displayTextLine(5, "Bila: %d", max);
-	waitForButtonPress();
-	eraseDisplay();
+			sleep(10);
+
+
+		}
+	}
 }
 
 
 
 task main()
 {
- kalibrace_light();	
- 
+ kalibrace_light();
+ 	displayTextLine(4, "Cerna: %d", min);
+	displayTextLine(5, "Bila: %d", max);
+
  while(1)
  {
    sleep(5);
