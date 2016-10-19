@@ -1,0 +1,111 @@
+//funkce, které vůbec nemusíme použít, ale vypadají hodně chytře
+//zadna garance, na vlastni riziko
+
+void PID_autokalibrace()
+{
+  
+  double parametr[3] = {0.0,0.0,0.0};
+
+float Kp = parametr[0];
+float Ki = parametr[1];
+float Kd = parametr[2];
+double dp[3] = {0.0,0.0,0.0}; //zkus to jenom s Kp (druhy dve dp das nulovy)
+double sum = (dp[0]+dp[1]+dp[2]);
+
+
+float sval = hsensoru;
+
+
+double nejsval = sval;
+
+  while(sum > 0.0000001)
+  {
+
+    for (int i=0; i<3; i++)
+    { //doplH pro ka~dej parametr{
+        parametr[i] += dp[i]; //k parametru pYiti potenciální zmnu
+
+        if (sval < nejsval)
+        { //kdy~ je nejlepaí chyba vtaí ne~ chyba
+          nejsval = sval;
+          dp[i] *= 1.1;
+        }
+        else
+        { //kdy~ se to nezlepaí, úpravu odeti
+          parametr[i] -= 2*dp[i];
+
+          if (sval < nejsval)
+          { //kdy~ je nejlepaí chyba zase vtaí ne~ chyba
+            nejsval = sval;
+            dp[i] *= 1.1;
+          }
+          else //kdy~ je nejlepaí chyba menaí ne~ chyba
+          {
+            parametr[i] += dp[i];
+            dp[i] *= 0.9;
+          }
+        }
+        double sum = (dp[0]+dp[1]+dp[2]+dp[3]);
+    }
+
+  float sval = getGyroDegrees(S2) * -1;
+  float pwr = (sval * Kp) + (derivativ * Kd);
+   //pohyb
+  }
+}
+
+/**************************************/
+
+#pragma DebuggerWindows("debugStream");
+
+#define SIRKA_ROBOTA 15
+#define D_KOL 5.6 //(prumer v centimetrech)
+#define DOCASNY_ELEMENT 1
+
+float delka_jednoho_stupne = (PI * D_KOL)/360;
+
+task lokalizace()
+{
+      float X_souradnice = 0;
+      float Y_souradnice = 0;
+      float draha_stara = 0;
+
+
+   while (true)
+   {
+
+      float draha_motorA_cm = getMotorEncoder(motorB) * delka_jednoho_stupne;
+
+      float draha_robota = draha_motorA_cm;
+     sleep(10);
+      //draha_stara = getMotorEncoder(motorB) * delka_jednoho_stupne;
+
+      float uhlovy_rozdil_kol = getMotorEncoder(motorB) - getMotorEncoder(motorC);
+      float obvod_robota = PI * SIRKA_ROBOTA;
+      float delka_uhlu_robota = ((PI * D_KOL)/360) * uhlovy_rozdil_kol;
+      float odometrie_uhelrobota = delka_uhlu_robota/(obvod_robota/360);
+
+
+      float uhelRobota = getGyroDegrees(gyroSensor) + DOCASNY_ELEMENT;
+      //float zmena_drahy = draha_robota - draha_stara;
+
+
+      X_souradnice = X_souradnice - cosDegrees(uhelRobota);
+      Y_souradnice = Y_souradnice + sinDegrees(uhelRobota);
+
+
+      float cas_sec = time1[T1]/1000;
+      // float rychlost = (draha_robota + 0.001)/cas_sec;
+
+      writeDebugStreamLine("%f, %f, %f, %f, %f, %f", cas_sec, draha_robota, uhelRobota, odometrie_uhelrobota, X_souradnice, Y_souradnice);
+
+
+    uhelRobota = getGyroDegrees(gyroSensor) - DOCASNY_ELEMENT;
+
+
+
+   }
+
+
+}
+
