@@ -46,27 +46,40 @@ return vystup_avg;
 //Nasleduji ty, ktere je potreba zprovoznit
 /********************************************/
 
-#define RYCHLOST_ZATACKY 30
-#define RYCHLOST_VYJEZDU_ZE_ZATACKY 50
+#define RYCHLOST_ZATACKY 20
+#define RYCHLOST_VYJEZDU_ZE_ZATACKY 60
 
-void potencialnizatacka()
+void potencialnizatacka(int stupne)
 {
-	if(getTouchValue(S1) == 1)
+	if(getTouchValue(S1) == 0)
 	{
+		displayCenteredBigTextLine(3, "potencialnizatacka()");
 		resetGyro(S2);
-		repeatUntil(getGyroDegrees(S2) > 90)
-		{
-			setMotorSpeed(motorA, -1 * RYCHLOST_ZATACKY);
-			setMotorSpeed(motorB, RYCHLOST_ZATACKY);
-		}
-
-		setMotorSpeed(motorA, RYCHLOST_VYJEZDU_ZE_ZATACKY);
-		setMotorSpeed(motorB, RYCHLOST_VYJEZDU_ZE_ZATACKY);
-
-		sleep(100);
-	}
+		
+		float odchylka = stupne - getGyroDegrees(S2);
+   
+		while (odchylka > 0 || odchylka < -0)
+			{
+				bFloatDuringInactiveMotorPWM = true;
+				odchylka = stupne - getGyroDegrees(S2);
+				if(getGyroDegrees(S2) < stupne)
+					{
+						setMotorSync(pravymotor, levyymotor, 100, RYCHLOST_ZATACKY + odchylka *0.5);  	
+          }
+					  
+				if(getGyroDegrees(S2) > stupne)
+					{
+						setMotorSync(pravymotor, levyymotor, -100, RYCHLOST_ZATACKY +  odchylka *0.5); 
+					}						
+			}
+              	 	
+	 displayCenteredBigTextLine(3, "vyjezdzezatacky");
+		sleep(3000) ; 
+		setMotorSync(pravymotor, levyymotor, 0, RYCHLOST_VYJEZDU_ZE_ZATACKY);
+  
+         sleep(1000);
+ 	} 
 }
-
 /********************************************/
 
 #define ROZPETI_OSCILACE 40 //stupnu
