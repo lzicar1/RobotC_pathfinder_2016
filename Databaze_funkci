@@ -156,3 +156,27 @@ void kalibrace_light()
 }
 
 /********************************************/
+
+
+task hloupe_sledovanicary(float kp, float kd)
+{
+//rekurzivniokenko
+   float posledniodchylka = 0;
+
+   while (1)
+   {
+     	float odchylka = hrana - getColorReflected(S3);
+      float derivativ = odchylka - posledniodchylka;
+      float rychlost_pid = odchylka * kp + derivativ * kd;
+
+      float rychlost_levyymotor = ZAKLAD + rychlost_pid;
+      float rychlost_pravymotor = ZAKLAD - rychlost_pid;
+
+      setMotorSpeed(levyymotor, rychlost_levyymotor);
+      setMotorSpeed(pravymotor, rychlost_pravymotor);
+
+  		writeDebugStreamLine("%f,%f,%f,%f", odchylka, derivativ);
+  		sleep(5);
+  		posledniodchylka = odchylka;
+   }
+}
